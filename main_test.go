@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/fatih/color"
 )
 
 func TestFetchWeather_Success(t *testing.T) {
@@ -84,4 +86,47 @@ func TestFetchWeather_InvalidJSON(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for invalid JSON")
 	}
+}
+
+func TestTempColor(t *testing.T) {
+	tests := []struct {
+		temp     float64
+		wantAttr color.Attribute
+	}{
+		{-5, color.FgBlue},
+		{0, color.FgBlue},
+		{9.9, color.FgBlue},
+		{10, color.FgYellow},
+		{20, color.FgYellow},
+		{25, color.FgYellow},
+		{25.1, color.FgRed},
+		{40, color.FgRed},
+	}
+
+	for _, tt := range tests {
+		c := tempColor(tt.temp)
+		want := color.New(tt.wantAttr)
+		if c.Sprint("x") != want.Sprint("x") {
+			t.Errorf("tempColor(%.1f): got different color than expected %v", tt.temp, tt.wantAttr)
+		}
+	}
+}
+
+func TestDisplayWeather_NoColor(t *testing.T) {
+	color.NoColor = true
+	defer func() { color.NoColor = false }()
+
+	w := &WeatherResponse{
+		Name: "TestCity",
+		Weather: []WeatherCondition{
+			{ID: 800, Main: "Clear", Description: "clear sky"},
+		},
+		Main: MainWeather{
+			Temp:      5.0,
+			FeelsLike: 3.0,
+			Humidity:  50,
+		},
+	}
+	// Should not panic when colors are disabled
+	displayWeather(w)
 }

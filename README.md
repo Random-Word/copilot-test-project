@@ -7,7 +7,7 @@ A simple command-line weather tool written in Go.
 - [ ] 5-day forecast display
 - [ ] Temperature unit conversion (C/F/K)
 - [ ] Cache recent lookups to reduce API calls
-- [ ] Colored terminal output
+- [x] Colored terminal output
 
 ## Setup
 
@@ -22,4 +22,5 @@ weather london
 weather new york
 weather --forecast 5 tokyo
 weather --units fahrenheit paris
+weather --no-color london
 ```

@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/fatih/color"
 )
 
 const openWeatherMapBaseURL = "https://api.openweathermap.org/data/2.5/weather"
@@ -74,9 +76,26 @@ func fetchWeatherFromURL(baseURL, city, apiKey string) (*WeatherResponse, error)
 	return &weather, nil
 }
 
+// tempColor returns a color function based on the temperature:
+// blue for cold (<10°C), yellow for mild (10–25°C), red for hot (>25°C).
+func tempColor(temp float64) *color.Color {
+	switch {
+	case temp < 10:
+		return color.New(color.FgBlue)
+	case temp > 25:
+		return color.New(color.FgRed)
+	default:
+		return color.New(color.FgYellow)
+	}
+}
+
 func displayWeather(w *WeatherResponse) {
 	fmt.Printf("Weather for %s:\n", w.Name)
-	fmt.Printf("  Temperature: %.1f°C (feels like %.1f°C)\n", w.Main.Temp, w.Main.FeelsLike)
+
+	tc := tempColor(w.Main.Temp)
+	tc.Printf("  Temperature: %.1f°C", w.Main.Temp)
+	fmt.Printf(" (feels like %.1f°C)\n", w.Main.FeelsLike)
+
 	fmt.Printf("  Humidity:    %d%%\n", w.Main.Humidity)
 
 	if len(w.Weather) > 0 {
@@ -89,11 +108,23 @@ func displayWeather(w *WeatherResponse) {
 }
 
 func run() error {
-	if len(os.Args) < 2 {
-		return fmt.Errorf("usage: weather <city>")
+	args := os.Args[1:]
+
+	// Handle --no-color flag
+	var filtered []string
+	for _, a := range args {
+		if a == "--no-color" {
+			color.NoColor = true
+		} else {
+			filtered = append(filtered, a)
+		}
 	}
 
-	city := strings.Join(os.Args[1:], " ")
+	if len(filtered) == 0 {
+		return fmt.Errorf("usage: weather [--no-color] <city>")
+	}
+
+	city := strings.Join(filtered, " ")
 
 	apiKey := os.Getenv("OPENWEATHERMAP_API_KEY")
 	if apiKey == "" {
