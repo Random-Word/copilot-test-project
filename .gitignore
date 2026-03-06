@@ -1,0 +1,7 @@
+.runtime/
+.claude/
+.copilot/
+.logs/
+.beads/
+__pycache__/
+copilot-test-project
