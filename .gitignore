@@ -2,3 +2,5 @@
 .claude/
 .logs/
 __pycache__/
+.beads/
+.copilot/
